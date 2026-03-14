@@ -1,0 +1,1 @@
+Make restore site fully responsive for mobile, tablet, and desktop - Add mobile menu toggle and responsive CSS - Make dashboard sidebar slide-in on mobile - Responsive modals, chatbot, and cart - Touch-friendly design with proper breakpoints
