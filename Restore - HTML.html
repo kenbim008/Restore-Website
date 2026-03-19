@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Re'Store Services Inc. – Calgary Cleaning</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.4/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const LOGO = "https://static.wixstatic.com/media/2a2829_ac9095b8c1fc4ae98f41b06dafc78eea~mv2.jpg/v1/fill/w_397,h_104,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/Website%20Logo_edited.jpg";
+const RES  = "https://static.wixstatic.com/media/2a2829_a643acca28c44e56966f83a9a9a97c55~mv2.webp/v1/fill/w_600,h_400,al_c,q_80,enc_avif,quality_auto/11062b_5cc817b0cd744f2b85fd03f948430041_mv2.webp";
+const COM  = "https://static.wixstatic.com/media/2a2829_8516d9c11a274d969f301d9acb49fa1e~mv2.webp/v1/fill/w_600,h_400,al_c,q_80,enc_avif,quality_auto/11062b_41fff402d5e94ddc879b44d8b1d65334_mv2.webp";
+const SPC  = "https://static.wixstatic.com/media/2a2829_664e017cdb614833a6efd5b14f098a25~mv2.webp/v1/fill/w_600,h_400,al_c,q_80,enc_avif,quality_auto/d9aea41b66274531aadd36d2cda820d2.webp";
+const ABT  = "https://static.wixstatic.com/media/84770f_2697383481646659a133dfd3498b4f10.jpg/v1/fill/w_500,h_250,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/84770f_2697383481646659a133dfd3498b4f10.jpg";
+
+const P = { home:"home",about:"about",vision:"vision",mission:"mission",values:"values",services:"services",gallery:"gallery",giftcard:"giftcard",quote:"quote",reviews:"reviews",admin:"admin",dashboard:"dashboard",carpet:"carpet",residential:"residential",commercial:"commercial" };
+
+const REVIEWS = [
+  {a:"Sarah M.",r:5,t:"Re'Store did an incredible job on our home after renovation. Every corner spotless. Highly recommend!",d:"2 weeks ago"},
+  {a:"David K.",r:5,t:"The carpet cleaning was amazing — stains I thought were permanent are completely gone. Will definitely book again.",d:"1 month ago"},
+  {a:"Jennifer L.",r:5,t:"Professional, punctual, eco-friendly products. My kids and dog are safe. 10/10 service!",d:"1 month ago"},
+  {a:"Mike T.",r:4,t:"Great commercial cleaning service for our office. The team is thorough and respectful of our workspace.",d:"2 months ago"},
+  {a:"Amanda R.",r:5,t:"Used the move-out cleaning service. Got my full damage deposit back! Worth every penny.",d:"2 months ago"},
+  {a:"Carlos B.",r:5,t:"Fast booking, great communication, excellent results. The quote calculator made it so easy to plan.",d:"3 months ago"},
+];
+
+const TIMES = ["8:00 AM","9:00 AM","10:00 AM","11:00 AM","1:00 PM","2:00 PM","3:00 PM","4:00 PM"];
+const BUSY  = ["9:00 AM","2:00 PM"];
+
+/* ── STYLES ── */
+const css = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#cc1f1f;--rdk:#a81818;--rlt:#fdf0f0;--gld:#e87722;--gdk:#cf6a1a;--wh:#fff;--off:#f9f9f9;--gl:#f2f4f6;--gr:#767676;--gm:#555;--dk:#2b2b2b;--bd:#e2e6ea;--sh:0 2px 16px rgba(0,0,0,.08);--shl:0 6px 32px rgba(0,0,0,.13)}
+html{scroll-behavior:smooth}
+body{font-family:'Open Sans',sans-serif;color:var(--dk);background:var(--wh);font-size:15px;line-height:1.7;margin:0}
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:200;background:var(--wh);border-bottom:1px solid var(--bd);box-shadow:0 1px 8px rgba(0,0,0,.07)}
+.htop{background:var(--red);color:#fde8e8;text-align:right;padding:7px 48px;font-size:12.5px;font-weight:600}
+.htop a{color:#fde8e8;text-decoration:none}
+.htop a:hover{color:#fff}
+.hmain{display:flex;align-items:center;justify-content:space-between;padding:0 48px;max-width:1280px;margin:0 auto;height:72px}
+.logo{cursor:pointer;display:flex;align-items:center}
+.logo img{height:56px;width:auto;object-fit:contain}
+nav{display:flex;align-items:center}
+.ni{position:relative}
+.nl{display:flex;align-items:center;height:72px;padding:0 13px;font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--dk);cursor:pointer;white-space:nowrap;border:none;background:none;font-family:'Open Sans',sans-serif;position:relative;transition:color .2s}
+.nl::after{content:'';position:absolute;bottom:0;left:13px;right:13px;height:3px;background:var(--red);transform:scaleX(0);transition:transform .2s}
+.nl:hover,.nl.act{color:var(--red)}
+.nl:hover::after,.nl.act::after{transform:scaleX(1)}
+.nl.dp>span::after{content:' ▾';font-size:9px}
+.dd{position:absolute;top:100%;left:0;background:#fff;border:1px solid var(--bd);border-top:3px solid var(--red);box-shadow:var(--shl);min-width:230px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .18s,transform .18s;z-index:300}
+.ni:hover .dd{opacity:1;pointer-events:all;transform:translateY(0)}
+.dl{display:block;padding:11px 20px;font-size:12px;font-weight:600;text-transform:uppercase;color:var(--dk);cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:'Open Sans',sans-serif;transition:background .15s,color .15s}
+.dl:hover{background:var(--rlt);color:var(--red)}
+.abtn{margin-left:10px;padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:3px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:'Open Sans',sans-serif;transition:background .2s}
+.abtn:hover{background:var(--rdk)}
+.ham{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:4px}
+.ham span{display:block;width:24px;height:2px;background:var(--dk);border-radius:2px}
+.mob{display:none;flex-direction:column;background:#fff;border-top:1px solid var(--bd);padding:8px 0 16px}
+.mob.open{display:flex}
+.mnl{padding:11px 28px;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--dk);cursor:pointer;border:none;background:none;text-align:left;font-family:'Open Sans',sans-serif}
+.mnl:hover{color:var(--red)}
+.msl{padding:8px 44px;font-size:12.5px;color:var(--gm);cursor:pointer;border:none;background:none;text-align:left;font-family:'Open Sans',sans-serif}
+.msl:hover{color:var(--red)}
+/* HERO */
+.hero{background:linear-gradient(135deg,#cc1f1f,#991515);color:#fff;text-align:center;padding:80px 40px 72px}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:600;margin-bottom:16px;line-height:1.15}
+.hero p{font-size:16px;opacity:.88;max-width:540px;margin:0 auto 36px;font-weight:300}
+.hbtn{padding:14px 40px;background:var(--gld);color:#fff;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;border-radius:3px;cursor:pointer;border:none;font-family:'Open Sans',sans-serif;transition:background .2s,transform .2s}
+.hbtn:hover{background:var(--gdk);transform:translateY(-1px)}
+/* SECTION */
+.sec{padding:72px 48px;max-width:1280px;margin:0 auto}
+.stitle{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3vw,2.8rem);color:var(--dk);margin-bottom:14px;font-weight:600}
+.ssub{color:var(--gr);font-size:15px;max-width:580px;margin-bottom:48px}
+.gbar{width:48px;height:3px;background:var(--gld)}
+/* CARDS */
+.cg{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.card{background:#fff;border:1px solid var(--bd);overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s;cursor:pointer}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shl);border-color:var(--red)}
+.cimg{width:100%;height:210px;object-fit:cover;display:block}
+.cbody{padding:26px 28px 28px}
+.ctitle{font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--red);margin-bottom:12px;font-weight:600}
+.ctxt{font-size:14px;color:var(--gm);line-height:1.75;margin-bottom:22px}
+.rmbtn{display:inline-block;padding:9px 24px;background:var(--red);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:1.2px;border:2px solid var(--red);cursor:pointer;border-radius:2px;font-family:'Open Sans',sans-serif;transition:background .2s;text-transform:uppercase}
+.rmbtn:hover{background:var(--rdk);border-color:var(--rdk)}
+/* TEXT PAGE */
+.tp{max-width:840px;margin:0 auto;padding:72px 48px}
+.tp h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);color:var(--red);font-weight:600}
+.pline{width:48px;height:3px;background:var(--gld);margin:16px 0 32px}
+.tp p{font-size:15px;line-height:1.85;color:var(--gm);margin-bottom:20px}
+/* VALUES */
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px}
+.vc{background:var(--rlt);border-left:3px solid var(--red);padding:20px 24px}
+.vt{font-weight:700;color:var(--red);margin-bottom:6px;font-size:13.5px;text-transform:uppercase}
+.vx{font-size:13.5px;color:var(--gm);line-height:1.65}
+/* CTA */
+.ctas{background:var(--gl);text-align:center;padding:60px 40px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.ctas h3{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gr);margin-bottom:10px}
+.ctas h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.2rem);color:var(--red);font-weight:600}
+/* GALLERY */
+.gg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gi{aspect-ratio:4/3;overflow:hidden;background:var(--gl)}
+.gi img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
+.gi:hover img{transform:scale(1.04)}
+/* FORM */
+.fbox{max-width:700px;margin:0 auto;background:#fff;border:1px solid var(--bd);box-shadow:var(--sh);padding:48px 44px}
+.fbox h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--red);margin-bottom:8px}
+.fsub{font-size:14px;color:var(--gr);margin-bottom:28px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--gr);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 14px;border:1px solid var(--bd);background:var(--off);font-size:14px;font-family:'Open Sans',sans-serif;color:var(--dk);outline:none;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--red);background:#fff}
+.fg textarea{resize:vertical;min-height:90px}
+.rbtn{width:100%;padding:13px;background:var(--red);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Open Sans',sans-serif;text-transform:uppercase;letter-spacing:.8px;transition:background .2s}
+.rbtn:hover{background:var(--rdk)}
+.rbtn:disabled{opacity:.6;cursor:not-allowed}
+.ok{background:var(--rlt);color:var(--rdk);padding:16px;text-align:center;font-weight:700;font-size:14px;border:1px solid #f0c0c0;margin-top:16px}
+/* CALENDAR */
+.calw{background:#fff;border:1px solid var(--bd);padding:24px;margin-bottom:28px}
+.calw h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--red);margin-bottom:14px;font-weight:600}
+.chdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cnav{background:none;border:1.5px solid var(--bd);padding:5px 12px;cursor:pointer;font-family:'Open Sans',sans-serif;transition:all .15s;font-size:14px}
+.cnav:hover{border-color:var(--red);color:var(--red)}
+.cwds{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.cwd{text-align:center;font-size:10px;font-weight:700;color:var(--gr);text-transform:uppercase;padding:4px 0}
+.cgr{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cday{padding:7px 4px;text-align:center;font-size:13px;cursor:pointer;border-radius:3px;font-weight:600;transition:all .15s}
+.cday:hover:not(.past){background:var(--rlt);color:var(--red)}
+.cday.sel{background:var(--red);color:#fff}
+.cday.tod{border:2px solid var(--gld)}
+.cday.past{opacity:.3;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.slot{padding:9px 4px;border:1.5px solid var(--bd);background:var(--off);font-size:12.5px;font-weight:600;cursor:pointer;text-align:center;font-family:'Open Sans',sans-serif;transition:all .15s}
+.slot:hover:not(.bz){border-color:var(--red);color:var(--red);background:var(--rlt)}
+.slot.on{border-color:var(--red);background:var(--red);color:#fff}
+.slot.bz{opacity:.35;cursor:not-allowed;background:var(--gl)}
+/* QUOTE */
+.qc{background:#fff;border:1px solid var(--bd);padding:36px 40px;max-width:700px;margin:0 auto;box-shadow:var(--sh)}
+.qc h2{font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--red);margin-bottom:8px}
+.stabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.stab{padding:9px 16px;border:1.5px solid var(--bd);background:var(--off);font-size:13px;font-weight:600;cursor:pointer;font-family:'Open Sans',sans-serif;transition:all .15s}
+.stab.on{border-color:var(--red);background:var(--red);color:#fff}
+.rng{width:100%;accent-color:var(--red);margin-top:4px}
+.exg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ex{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--bd);cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.ex.on{border-color:var(--red);background:var(--rlt);color:var(--red)}
+.qres{background:var(--red);color:#fff;padding:28px 32px;margin-top:20px}
+.qres h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:14px}
+.ql2{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;opacity:.9}
+.qtot{display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.3)}
+.wbtn{padding:11px 28px;background:#fff;color:var(--red);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Open Sans',sans-serif;margin-top:16px}
+.wbtn:hover{background:#f5f5f5}
+/* REVIEWS */
+.rg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.rc{background:#fff;border:1px solid var(--bd);padding:24px;box-shadow:var(--sh)}
+.rs{color:#f59e0b;font-size:16px;margin-bottom:10px}
+.rt{font-size:14px;color:var(--gm);line-height:1.65;margin-bottom:14px;font-style:italic}
+.ra{font-size:13px;font-weight:700}
+.rd{font-size:12px;color:var(--gr);margin-top:2px}
+/* GIFT CARD */
+.gcb{max-width:500px;margin:0 auto;text-align:center;background:#fff;border:1px solid var(--bd);padding:52px 44px;box-shadow:var(--sh)}
+.gin{width:100%;padding:11px 15px;margin:6px 0;border:1px solid var(--bd);font-size:14px;font-family:'Open Sans',sans-serif;background:var(--off);outline:none;transition:border-color .2s}
+.gin:focus{border-color:var(--red);background:#fff}
+.gbtn{width:100%;padding:13px;margin-top:16px;background:var(--red);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Open Sans',sans-serif;text-transform:uppercase;transition:background .2s}
+.gbtn:hover{background:var(--rdk)}
+.sbadge{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:12px;color:var(--gr)}
+/* ADMIN */
+.adw{max-width:1100px;margin:0 auto;padding:48px 40px}
+.adw h1{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:var(--red);font-weight:600;margin-bottom:8px}
+.adst{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:24px 0}
+.ads{background:#fff;border:1px solid var(--bd);padding:24px;box-shadow:var(--sh)}
+.ads .n{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;color:var(--red)}
+.ads .l{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gr);margin-top:4px}
+.atabs{display:flex;border-bottom:2px solid var(--bd);margin-bottom:24px}
+.atab{padding:12px 22px;font-size:13px;font-weight:700;text-transform:uppercase;cursor:pointer;border:none;background:none;font-family:'Open Sans',sans-serif;color:var(--gr);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s}
+.atab.on{color:var(--red);border-bottom-color:var(--red)}
+.bt{width:100%;border-collapse:collapse;background:#fff;box-shadow:var(--sh)}
+.bt th{background:var(--red);color:#fff;padding:12px 16px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:left}
+.bt td{padding:11px 16px;border-bottom:1px solid var(--bd);font-size:13.5px}
+.bt tr:hover td{background:var(--rlt)}
+.badge{display:inline-block;padding:3px 10px;font-size:11px;font-weight:700;text-transform:uppercase;border-radius:2px}
+.bc{background:#d4edda;color:#155724}
+.bp{background:#fff3cd;color:#856404}
+.bx{background:#f8d7da;color:#721c24}
+.aa{padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--bd);background:none;font-family:'Open Sans',sans-serif;margin-right:4px;transition:all .15s}
+.aa:hover{border-color:var(--red);color:var(--red)}
+.aa.del:hover{border-color:#dc3545;color:#dc3545}
+/* CHATBOT */
+.cfab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;background:var(--red);color:#fff;border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 20px rgba(204,31,31,.4);z-index:999;display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.cfab:hover{transform:scale(1.08)}
+.cwin{position:fixed;bottom:90px;right:24px;width:330px;background:#fff;border:1px solid var(--bd);box-shadow:var(--shl);z-index:998;display:flex;flex-direction:column}
+.cwhdr{background:var(--red);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+.cav{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px}
+.cmsgs{height:280px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--off)}
+.cm{max-width:82%;padding:9px 13px;font-size:13px;line-height:1.5}
+.cm.bot{background:#fff;border:1px solid var(--bd);align-self:flex-start;border-radius:0 8px 8px 8px}
+.cm.usr{background:var(--red);color:#fff;align-self:flex-end;border-radius:8px 0 8px 8px}
+.cact{display:inline-block;margin-top:6px;padding:3px 9px;font-size:11.5px;font-weight:700;background:var(--rlt);color:var(--red);border:1px solid var(--red);cursor:pointer;border-radius:2px;font-family:'Open Sans',sans-serif}
+.cinr{display:flex;border-top:1px solid var(--bd)}
+.cin{flex:1;padding:11px 14px;border:none;font-size:13.5px;font-family:'Open Sans',sans-serif;outline:none}
+.csnd{padding:11px 14px;background:var(--red);color:#fff;border:none;cursor:pointer;font-size:15px;transition:background .2s}
+.csnd:hover{background:var(--rdk)}
+/* SEO */
+.sh{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);color:#fff;padding:60px 48px}
+.sh h1{font-family:'Cormorant Garamond',serif;font-size:clamp(1.9rem,4vw,2.9rem);font-weight:600;margin-bottom:12px}
+.sh p{font-size:15px;opacity:.85;max-width:600px}
+.sbc{font-size:11px;opacity:.55;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
+.fqi{border-bottom:1px solid var(--bd)}
+.fqq{width:100%;text-align:left;padding:15px 0;font-size:14.5px;font-weight:700;cursor:pointer;border:none;background:none;font-family:'Open Sans',sans-serif;color:var(--dk);display:flex;justify-content:space-between}
+.fqq:hover{color:var(--red)}
+.fqa{padding:0 0 14px;font-size:14px;color:var(--gm);line-height:1.75}
+/* DASH */
+.dw{max-width:900px;margin:0 auto;padding:48px 40px}
+.dw h1{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--red);font-weight:600;margin-bottom:8px}
+.dc{background:#fff;border:1px solid var(--bd);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sh);margin-bottom:12px}
+.dc h4{font-size:15px;font-weight:700;margin-bottom:4px}
+.dc p{font-size:13px;color:var(--gr)}
+/* FOOTER */
+footer{background:var(--red);color:rgba(255,255,255,.88);padding:60px 48px 32px}
+.fg2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px;max-width:1100px;margin:0 auto 48px}
+.fc h4{color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.2)}
+.fc p,.fc li{font-size:13.5px;line-height:1.75}
+.fc ul{list-style:none}
+.fc li{margin-bottom:8px}
+.cff input,.cff textarea{width:100%;padding:8px 11px;margin-bottom:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:13px;font-family:'Open Sans',sans-serif;outline:none}
+.cff input::placeholder,.cff textarea::placeholder{color:rgba(255,255,255,.45)}
+.cff input:focus,.cff textarea:focus{border-color:var(--gld)}
+.cff textarea{min-height:72px;resize:vertical}
+.cff button{padding:8px 20px;background:#fff;color:var(--red);border:none;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:'Open Sans',sans-serif;transition:background .2s,color .2s}
+.cff button:hover{background:var(--gld);color:#fff}
+.fbot{max-width:1100px;margin:0 auto;border-top:1px solid rgba(255,255,255,.15);padding-top:22px;text-align:center;font-size:12.5px;color:rgba(255,255,255,.5)}
+.soci{display:flex;gap:8px;margin-top:14px}
+.soc{width:32px;height:32px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;cursor:pointer;text-decoration:none;transition:background .2s}
+.soc:hover{background:rgba(255,255,255,.3)}
+.ql{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,255,255,.3)}
+.ql:hover{color:#fff}
+.pe{animation:fi .28s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){.cg,.adst,.rg{grid-template-columns:1fr 1fr}.fg2{grid-template-columns:1fr 1fr}.vg,.sec .fg2{grid-template-columns:1fr}.gg{grid-template-columns:1fr 1fr}.exg{grid-template-columns:1fr 1fr}.slots{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.hmain{padding:0 16px}nav{display:none}.ham{display:flex}.cg,.fg2,.vg,.adst,.rg{grid-template-columns:1fr}.gg,.exg{grid-template-columns:1fr 1fr}.fr{grid-template-columns:1fr}.sec,.tp,.adw,.dw{padding:44px 18px}.hero{padding:52px 18px 44px}footer{padding:44px 18px 24px}.htop{padding:7px 18px}.slots{grid-template-columns:repeat(2,1fr)}.cwin{width:calc(100vw - 32px);right:16px}.sh{padding:48px 18px}}
+`;
+
+/* ── MINI CALENDAR ── */
+function MiniCal({sel,onSel}) {
+  const [vm,setVm] = useState(new Date());
+  const today = new Date(); today.setHours(0,0,0,0);
+  const y=vm.getFullYear(),m=vm.getMonth();
+  const fd=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+  const mn=vm.toLocaleDateString('en-CA',{month:'long',year:'numeric'});
+  const cells=[];
+  for(let i=0;i<fd;i++) cells.push(null);
+  for(let d=1;d<=dim;d++) cells.push(new Date(y,m,d));
+  return (
+    <div>
+      <div className="chdr">
+        <button className="cnav" onClick={()=>setVm(new Date(y,m-1,1))}>‹</button>
+        <strong style={{fontSize:14}}>{mn}</strong>
+        <button className="cnav" onClick={()=>setVm(new Date(y,m+1,1))}>›</button>
+      </div>
+      <div className="cwds">{['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=><div className="cwd" key={d}>{d}</div>)}</div>
+      <div className="cgr">
+        {cells.map((d,i)=>{
+          if(!d) return <div key={i}/>;
+          const past=d<today,isSel=sel&&d.toDateString()===sel.toDateString(),isT=d.toDateString()===today.toDateString();
+          return <div key={i} className={`cday${isSel?' sel':''}${isT?' tod':''}${past?' past':''}`} onClick={()=>!past&&onSel(d)}>{d.getDate()}</div>;
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── CHATBOT ── */
+function Chatbot({onNav}) {
+  const [open,setOpen]=useState(false);
+  const [msgs,setMsgs]=useState([{r:'bot',t:"👋 Hi! I'm the Re'Store virtual assistant. How can I help you today?",a:null}]);
+  const [inp,setInp]=useState('');
+  const [loading,setLoading]=useState(false);
+  const endRef=useRef(null);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:'smooth'})},[msgs]);
+
+  const KB=[
+    {kw:['price','cost','how much','quote','estimate'],t:"Our pricing starts at $80 for a basic clean. Use our Quote Calculator for an exact estimate!",a:'quote'},
+    {kw:['book','appointment','schedule','reserve'],t:"Great! I can help you book. We have availability this week. Want to see our calendar?",a:'services'},
+    {kw:['carpet'],t:"Carpet cleaning starts at $60 + $0.18/sq ft. We use hot water extraction. Want a quote?",a:'quote'},
+    {kw:['hour','open','available','when'],t:"We're available Monday–Saturday, 8am–6pm. Sundays by appointment only."},
+    {kw:['area','location','serve','calgary','airdrie'],t:"We serve Calgary, Airdrie, Cochrane, Chestermere, and Okotoks!"},
+    {kw:['cancel','reschedule'],t:"Please call 403-383-3707 or use 'My Bookings' to reschedule at least 24hrs before."},
+    {kw:['gift','card','present'],t:"Gift cards from $50–$250 – delivered instantly by email!",a:'giftcard'},
+    {kw:['eco','green','safe','pet','child','toxic'],t:"Yes! We use 100% eco-friendly, non-toxic products safe for kids, pets, and allergy sufferers 🌿"},
+    {kw:['commercial','office','business'],t:"We offer commercial cleaning for offices, retail, restaurants & more!",a:'commercial'},
+    {kw:['move','moving out'],t:"Move-in/out cleaning starts at $220. Perfect for getting deposits back!",a:'services'},
+  ];
+
+  const reply=(msg)=>{
+    const m=msg.toLowerCase();
+    return KB.find(k=>k.kw.some(w=>m.includes(w)))||{t:"Thanks for reaching out! I can help with pricing, booking, service areas and more. What would you like to know?"};
+  };
+
+  const send=(text)=>{
+    if(!text.trim()) return;
+    setMsgs(ms=>[...ms,{r:'user',t:text.trim(),a:null}]);
+    setInp('');
+    setLoading(true);
+    setTimeout(()=>{
+      const r=reply(text);
+      setMsgs(ms=>[...ms,{r:'bot',t:r.t,a:r.a||null}]);
+      setLoading(false);
+    },600);
+  };
+
+  return (
+    <>
+      {open && (
+        <div className="cwin">
+          <div className="cwhdr">
+            <div className="cav">🧹</div>
+            <div><div style={{fontWeight:700,fontSize:14}}>Re'Store Assistant</div><div style={{fontSize:11,opacity:.8}}>● Online – replies instantly</div></div>
+            <button style={{marginLeft:'auto',background:'none',border:'none',color:'#fff',fontSize:20,cursor:'pointer',lineHeight:1}} onClick={()=>setOpen(false)}>×</button>
+          </div>
+          <div className="cmsgs">
+            {msgs.map((m,i)=>(
+              <div key={i} className={`cm ${m.r}`}>
+                {m.t}
+                {m.a&&<div><button className="cact" onClick={()=>{onNav(m.a);setOpen(false);}}>→ {m.a==='quote'?'Get a Quote':m.a==='giftcard'?'Buy Gift Card':'Book Now'}</button></div>}
+              </div>
+            ))}
+            {loading&&<div className="cm bot" style={{color:'var(--gr)'}}>Typing…</div>}
+            <div ref={endRef}/>
+          </div>
+          <div className="cinr">
+            <input className="cin" placeholder="Ask a question…" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send(inp)}/>
+            <button className="csnd" onClick={()=>send(inp)}>➤</button>
+          </div>
+        </div>
+      )}
+      <button className="cfab" onClick={()=>setOpen(o=>!o)}>{open?'×':'💬'}</button>
+    </>
+  );
+}
+
+/* ── QUOTE CALCULATOR ── */
+function QuoteCalc({onBook}) {
+  const [svc,setSvc]=useState('residential');
+  const [beds,setBeds]=useState(2);
+  const [baths,setBaths]=useState(1);
+  const [sqft,setSqft]=useState(1200);
+  const [freq,setFreq]=useState('once');
+  const [extras,setExtras]=useState([]);
+  const [q,setQ]=useState(null);
+  const EX=[{id:'windows',l:'🪟 Windows',p:40},{id:'fridge',l:'🧊 Fridge',p:30},{id:'oven',l:'🔥 Oven',p:25},{id:'laundry',l:'👕 Laundry',p:20},{id:'garage',l:'🚗 Garage',p:50},{id:'patio',l:'🌿 Patio',p:35}];
+  const tog=id=>setExtras(e=>e.includes(id)?e.filter(x=>x!==id):[...e,id]);
+  const calc=()=>{
+    let b=0;
+    if(svc==='residential') b=80+(beds*25)+(baths*20);
+    else if(svc==='deep') b=150+(beds*35)+(baths*30);
+    else if(svc==='carpet') b=60+(sqft*.18);
+    else b=120+(sqft*.12);
+    const disc={weekly:.20,biweekly:.10,monthly:.05,once:0}[freq]||0;
+    const ea=extras.reduce((a,id)=>a+(EX.find(e=>e.id===id)?.p||0),0);
+    const sub=b+ea,dAmt=sub*disc,after=sub-dAmt,gst=after*.05;
+    setQ({sub:sub.toFixed(2),d:dAmt.toFixed(2),dp:(disc*100).toFixed(0),gst:gst.toFixed(2),tot:(after+gst).toFixed(2)});
+  };
+  return (
+    <div className="qc">
+      <h2>Instant Quote Calculator</h2>
+      <p className="fsub" style={{marginBottom:20}}>Get an estimate for your cleaning service in seconds.</p>
+      <div className="stabs">
+        {[{id:'residential',l:'🏠 Residential'},{id:'deep',l:'🧹 Deep Clean'},{id:'carpet',l:'🟫 Carpet'},{id:'commercial',l:'🏢 Commercial'}].map(s=>(
+          <button key={s.id} className={`stab${svc===s.id?' on':''}`} onClick={()=>{setSvc(s.id);setQ(null)}}>{s.l}</button>
+        ))}
+      </div>
+      {(svc==='residential'||svc==='deep')&&(
+        <div className="fr" style={{marginBottom:16}}>
+          <div className="fg"><label>Bedrooms: {beds}</label><input type="range" min={1} max={6} value={beds} onChange={e=>{setBeds(+e.target.value);setQ(null)}} className="rng"/></div>
+          <div className="fg"><label>Bathrooms: {baths}</label><input type="range" min={1} max={5} value={baths} onChange={e=>{setBaths(+e.target.value);setQ(null)}} className="rng"/></div>
+        </div>
+      )}
+      {(svc==='carpet'||svc==='commercial')&&(
+        <div className="fg" style={{marginBottom:16}}><label>Square Footage: {sqft} sq ft</label><input type="range" min={200} max={5000} step={50} value={sqft} onChange={e=>{setSqft(+e.target.value);setQ(null)}} className="rng"/></div>
+      )}
+      <div className="fg" style={{marginBottom:16}}>
+        <label>Frequency</label>
+        <select value={freq} onChange={e=>{setFreq(e.target.value);setQ(null)}}>
+          <option value="once">One-time</option>
+          <option value="weekly">Weekly (20% off)</option>
+          <option value="biweekly">Bi-weekly (10% off)</option>
+          <option value="monthly">Monthly (5% off)</option>
+        </select>
+      </div>
+      <div className="fg" style={{marginBottom:20}}>
+        <label>Add-ons</label>
+        <div className="exg">
+          {EX.map(e=><div key={e.id} className={`ex${extras.includes(e.id)?' on':''}`} onClick={()=>tog(e.id)}>{e.l}<span style={{marginLeft:'auto',opacity:.7,fontSize:12}}>+${e.p}</span></div>)}
+        </div>
+      </div>
+      <button className="rbtn" onClick={calc}>Get My Quote</button>
+      {q&&(
+        <div className="qres">
+          <h3>Your Estimate</h3>
+          <div className="ql2"><span>Subtotal</span><span>${q.sub}</span></div>
+          {parseFloat(q.d)>0&&<div className="ql2"><span>Discount ({q.dp}%)</span><span>−${q.d}</span></div>}
+          <div className="ql2"><span>GST (5%)</span><span>${q.gst}</span></div>
+          <div className="qtot"><span>Total (CAD)</span><span>${q.tot}</span></div>
+          <button className="wbtn" onClick={onBook}>Book This Service →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── ADMIN ── */
+function Admin() {
+  const [tab,setTab]=useState('bookings');
+  const [authed,setAuthed]=useState(false);
+  const [pw,setPw]=useState('');
+  const [bkgs,setBkgs]=useState([
+    {id:'1',name:'Sarah M.',email:'sarah@email.com',service:'Residential – Deep Cleaning',date:'2024-12-20',time:'10:00 AM',address:'123 Main St SW',status:'confirmed'},
+    {id:'2',name:'David K.',email:'david@email.com',service:'Carpet Cleaning',date:'2024-12-21',time:'2:00 PM',address:'456 Oak Ave NE',status:'confirmed'},
+    {id:'3',name:'Jennifer L.',email:'jen@email.com',service:'Residential – Regular',date:'2024-12-22',time:'9:00 AM',address:'789 Pine Cres, Airdrie',status:'pending'},
+    {id:'4',name:'Mike T.',email:'mike@email.com',service:'Commercial Cleaning',date:'2024-12-23',time:'8:00 AM',address:'101 Business Blvd',status:'confirmed'},
+    {id:'5',name:'Amanda R.',email:'amanda@email.com',service:'Move-In / Move-Out',date:'2024-12-26',time:'11:00 AM',address:'55 Elm Way NW',status:'pending'},
+  ]);
+  if(!authed) return (
+    <div className="adw" style={{maxWidth:400}}>
+      <h1>Admin Login</h1><div className="pline"/>
+      <div className="fg"><label>Password</label><input type="password" placeholder="Enter admin password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(pw==='admin123'?setAuthed(true):alert('Wrong password'))}/></div>
+      <button className="rbtn" onClick={()=>pw==='admin123'?setAuthed(true):alert('Wrong password (hint: admin123)')}>Login</button>
+      <p style={{fontSize:12,color:'var(--gr)',marginTop:10}}>Demo password: <strong>admin123</strong></p>
+    </div>
+  );
+  const conf=bkgs.filter(b=>b.status==='confirmed').length, pend=bkgs.filter(b=>b.status==='pending').length;
+  return (
+    <div className="adw">
+      <h1>Admin Dashboard</h1><div className="pline"/>
+      <div className="adst">
+        <div className="ads"><div className="n">{bkgs.length}</div><div className="l">Total Bookings</div></div>
+        <div className="ads"><div className="n">{conf}</div><div className="l">Confirmed</div></div>
+        <div className="ads"><div className="n">{pend}</div><div className="l">Pending</div></div>
+        <div className="ads"><div className="n">${conf*145}</div><div className="l">Est. Revenue</div></div>
+      </div>
+      <div className="atabs">
+        {['bookings','calendar','settings'].map(t=><button key={t} className={`atab${tab===t?' on':''}`} onClick={()=>setTab(t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+      </div>
+      {tab==='bookings'&&(
+        <div style={{overflowX:'auto'}}>
+          <table className="bt">
+            <thead><tr><th>Client</th><th>Service</th><th>Date</th><th>Time</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              {bkgs.map(b=>(
+                <tr key={b.id}>
+                  <td><strong>{b.name}</strong><br/><span style={{fontSize:12,color:'var(--gr)'}}>{b.email}</span></td>
+                  <td>{b.service}</td><td>{b.date}</td><td>{b.time}</td>
+                  <td style={{fontSize:13}}>{b.address}</td>
+                  <td><span className={`badge ${b.status==='confirmed'?'bc':b.status==='pending'?'bp':'bx'}`}>{b.status}</span></td>
+                  <td>
+                    {b.status!=='confirmed'&&<button className="aa" onClick={()=>setBkgs(bs=>bs.map(x=>x.id===b.id?{...x,status:'confirmed'}:x))}>Confirm</button>}
+                    {b.status!=='cancelled'&&<button className="aa del" onClick={()=>setBkgs(bs=>bs.map(x=>x.id===b.id?{...x,status:'cancelled'}:x))}>Cancel</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {tab==='calendar'&&(
+        <div>
+          <h3 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.4rem',color:'var(--red)',marginBottom:16}}>December 2024</h3>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6}}>
+            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><div key={d} style={{textAlign:'center',fontWeight:700,fontSize:11,color:'var(--gr)',padding:8,textTransform:'uppercase'}}>{d}</div>)}
+            {Array.from({length:35},(_,i)=>{
+              const d=i-3; if(d<1||d>31) return <div key={i} style={{background:'var(--gl)',border:'1px solid var(--bd)',minHeight:52,padding:6}}/>;
+              const bk=bkgs.find(b=>b.date===`2024-12-${String(d).padStart(2,'0')}`);
+              return <div key={i} style={{background:bk?'var(--rlt)':'#fff',border:`1px solid ${bk?'var(--red)':'var(--bd)'}`,minHeight:52,padding:6,fontSize:12}}>
+                <strong style={{color:bk?'var(--red)':'inherit'}}>{d}</strong>
+                {bk&&<div style={{fontSize:10,color:'var(--red)',fontWeight:700,marginTop:2}}>{bk.name}<br/>{bk.time}</div>}
+              </div>;
+            })}
+          </div>
+        </div>
+      )}
+      {tab==='settings'&&(
+        <div style={{maxWidth:500}}>
+          <h3 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.4rem',color:'var(--red)',marginBottom:18}}>Settings</h3>
+          {[["Business Name","Re'Store Services Inc."],["Phone","403-383-3707"],["Email","info@restoreservices.ca"],["Stripe Public Key","pk_live_..."],["Google Maps API Key","AIza..."]].map(([l,v])=>(
+            <div className="fg" key={l}><label>{l}</label><input defaultValue={v}/></div>
+          ))}
+          <button className="rbtn">Save Settings</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── MAIN APP ── */
+function App() {
+  const [page,setPage]=useState(P.home);
+  const [mob,setMob]=useState(false);
+  const [cSent,setCSent]=useState(false);
+  const [bSent,setBSent]=useState(false);
+  const [gSent,setGSent]=useState(false);
+  const [selDate,setSelDate]=useState(null);
+  const [selTime,setSelTime]=useState(null);
+  const [cf,setCf]=useState({name:'',email:'',msg:''});
+  const [bf,setBf]=useState({name:'',email:'',phone:'',service:'',address:'',notes:''});
+  const [gf,setGf]=useState({rName:'',rEmail:'',sName:'',msg:'',amount:''});
+  const [bLoading,setBLoading]=useState(false);
+  const [faqOpen,setFaqOpen]=useState(null);
+  const [dashAuth,setDashAuth]=useState(false);
+  const [dashEmail,setDashEmail]=useState('');
+
+  const nav=(p)=>{ setPage(p); setMob(false); window.scrollTo(0,0); };
+  const aboutP=[P.about,P.vision,P.mission,P.values];
+  const moreP=[P.quote,P.reviews,P.dashboard,P.carpet,P.residential,P.commercial];
+
+  const submitBook=()=>{
+    if(!selDate||!selTime||!bf.name||!bf.email){alert('Please fill in name, email and select a date & time.');return;}
+    setBLoading(true);
+    setTimeout(()=>{setBSent(true);setBLoading(false);},1000);
+  };
+
+  const FAQS=[
+    {q:"How much does carpet cleaning cost in Calgary?",a:"Professional carpet cleaning starts at $60 for a single room, with whole-home rates from $0.18/sq ft. Use our Quote Calculator for an exact price."},
+    {q:"How long does carpet cleaning take?",a:"A typical 3-bedroom home takes 2–3 hours. We use hot water extraction (steam cleaning), the method recommended by carpet manufacturers."},
+    {q:"Are your products safe for pets and children?",a:"Yes! We exclusively use eco-friendly, non-toxic products that are 100% safe for children, pets, and people with allergies or asthma."},
+    {q:"How soon can I walk on my carpets after cleaning?",a:"Carpets are typically dry within 4–6 hours. Light traffic after 2 hours, normal use after 6–8 hours."},
+    {q:"Do you offer stain removal guarantees?",a:"We treat all common stains including pet stains, wine, coffee, and mud. We achieve excellent results in the vast majority of cases."},
+  ];
+
+  return (
+    <>
+      <style>{css}</style>
+
+      {/* HEADER */}
+      <header className="hdr">
+        <div className="htop">📞 <a href="tel:4033833707">Call Us Now: 403-383-3707</a></div>
+        <div className="hmain">
+          <div className="logo" onClick={()=>nav(P.home)}><img src={LOGO} alt="Re'Store Services" onError={e=>e.target.style.display='none'}/></div>
+          <nav>
+            <div className="ni"><button className={`nl${page===P.home?' act':''}`} onClick={()=>nav(P.home)}>Home</button></div>
+            <div className="ni">
+              <button className={`nl dp${aboutP.includes(page)?' act':''}`}><span>About Us</span></button>
+              <div className="dd">
+                <button className="dl" onClick={()=>nav(P.about)}>About Us</button>
+                <button className="dl" onClick={()=>nav(P.vision)}>Our Vision</button>
+                <button className="dl" onClick={()=>nav(P.mission)}>Our Mission Statement</button>
+                <button className="dl" onClick={()=>nav(P.values)}>Our Core Values</button>
+              </div>
+            </div>
+            <div className="ni"><button className={`nl${page===P.services?' act':''}`} onClick={()=>nav(P.services)}>Our Services – Book Online</button></div>
+            <div className="ni">
+              <button className={`nl dp${moreP.includes(page)?' act':''}`}><span>More</span></button>
+              <div className="dd">
+                <button className="dl" onClick={()=>nav(P.quote)}>💰 Quote Calculator</button>
+                <button className="dl" onClick={()=>nav(P.reviews)}>⭐ Reviews</button>
+                <button className="dl" onClick={()=>nav(P.dashboard)}>📋 My Bookings</button>
+                <button className="dl" onClick={()=>nav(P.carpet)}>🟫 Carpet Cleaning Calgary</button>
+                <button className="dl" onClick={()=>nav(P.residential)}>🏠 House Cleaning Calgary</button>
+                <button className="dl" onClick={()=>nav(P.commercial)}>🏢 Commercial Cleaning Calgary</button>
+              </div>
+            </div>
+            <div className="ni"><button className={`nl${page===P.gallery?' act':''}`} onClick={()=>nav(P.gallery)}>Gallery</button></div>
+            <div className="ni"><button className={`nl${page===P.giftcard?' act':''}`} onClick={()=>nav(P.giftcard)}>Gift Card</button></div>
+            <button className="abtn" onClick={()=>nav(P.admin)}>Admin</button>
+          </nav>
+          <button className="ham" onClick={()=>setMob(o=>!o)}><span/><span/><span/></button>
+        </div>
+        <div className={`mob${mob?' open':''}`}>
+          <button className="mnl" onClick={()=>nav(P.home)}>Home</button>
+          <button className="mnl">About Us ▾</button>
+          <button className="msl" onClick={()=>nav(P.about)}>About Us</button>
+          <button className="msl" onClick={()=>nav(P.vision)}>Our Vision</button>
+          <button className="msl" onClick={()=>nav(P.mission)}>Our Mission</button>
+          <button className="msl" onClick={()=>nav(P.values)}>Our Core Values</button>
+          <button className="mnl" onClick={()=>nav(P.services)}>Our Services – Book Online</button>
+          <button className="mnl" onClick={()=>nav(P.quote)}>Quote Calculator</button>
+          <button className="mnl" onClick={()=>nav(P.reviews)}>Reviews</button>
+          <button className="mnl" onClick={()=>nav(P.gallery)}>Gallery</button>
+          <button className="mnl" onClick={()=>nav(P.giftcard)}>Gift Card</button>
+          <button className="mnl" onClick={()=>nav(P.dashboard)}>My Bookings</button>
+          <button className="mnl" onClick={()=>nav(P.admin)}>Admin</button>
+        </div>
+      </header>
+
+      <main className="pe" key={page}>
+
+        {/* HOME */}
+        {page===P.home&&<>
+          <div className="hero">
+            <h1>Professional Cleaning Services in Calgary</h1>
+            <p>Eco-friendly solutions for homes, businesses, and specialty surfaces. Serving Calgary and surrounding areas.</p>
+            <button className="hbtn" onClick={()=>nav(P.services)}>Book Online Now</button>
+          </div>
+          <div className="sec">
+            <div style={{textAlign:'center',marginBottom:48}}>
+              <div className="gbar" style={{margin:'0 auto 16px'}}/>
+              <h2 className="stitle">Our Services</h2>
+              <p className="ssub" style={{margin:'0 auto'}}>We bring professionalism and care to every clean — residential, commercial, or specialty.</p>
+            </div>
+            <div className="cg">
+              {[{img:RES,title:"Residential Cleaning",text:"Revitalize your home with our professional residential cleaning services. Our experienced team uses eco-friendly products to provide thorough cleaning and disinfection, leaving you with a spotless and refreshed living space."},{img:COM,title:"Commercial Cleaning",text:"Maximize your business's cleanliness and productivity with our commercial cleaning services. Our knowledgeable staff utilizes advanced equipment and techniques to provide top-notch cleaning and disinfection."},{img:SPC,title:"Specialty Cleaning",text:"Ensure the special surfaces in your home or business receive the proper care they deserve. From carpets to upholstery to hard floors, our experts use the latest tools and techniques to remove dirt, stains, and allergens."}].map((c,i)=>(
+                <div className="card" key={i} onClick={()=>nav(P.services)}>
+                  <img className="cimg" src={c.img} alt={c.title}/>
+                  <div className="cbody"><h3 className="ctitle">{c.title}</h3><p className="ctxt">{c.text}</p><button className="rmbtn">Read More</button></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{background:'var(--rlt)',padding:'48px',borderTop:'1px solid rgba(204,31,31,.2)',borderBottom:'1px solid rgba(204,31,31,.2)'}}>
+            <div style={{maxWidth:1280,margin:'0 auto',textAlign:'center'}}>
+              <div style={{fontSize:26,color:'#f59e0b',marginBottom:8}}>★★★★★</div>
+              <p style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.5rem',fontStyle:'italic',maxWidth:600,margin:'0 auto 12px'}}>"The best cleaning service in Calgary — professional, eco-friendly, and reliable every single time."</p>
+              <p style={{fontSize:13,color:'var(--gr)',marginBottom:20}}>— Sarah M., Calgary NW</p>
+              <button className="rmbtn" onClick={()=>nav(P.reviews)}>Read All Reviews</button>
+            </div>
+          </div>
+          <div className="ctas">
+            <h3>Ready for a cleaner space?</h3>
+            <h2>Call Us: 403-383-3707</h2>
+            <p style={{color:'var(--gr)',marginTop:12}}>Or <span style={{color:'var(--red)',cursor:'pointer',fontWeight:700,textDecoration:'underline'}} onClick={()=>nav(P.services)}>book online</span> for a free estimate · <span style={{color:'var(--red)',cursor:'pointer',fontWeight:700,textDecoration:'underline'}} onClick={()=>nav(P.quote)}>get a quote</span></p>
+          </div>
+        </>}
+
+        {/* ABOUT */}
+        {page===P.about&&<div className="tp">
+          <h1>About Us</h1><div className="pline"/>
+          <p>Re'Store Services Inc. is a top-notch cleaning company that specializes in providing exceptional cleaning services to both residential and commercial properties. With a reputation for providing high-quality services, we have become a go-to for homeowners, property managers, and business owners alike.</p>
+          <p>One of the many reasons why we are so highly regarded is because of our commitment to providing eco-friendly cleaning solutions. We understand the importance of reducing environmental impact and strive to make a positive impact in our communities.</p>
+          <p>Whether you need routine cleaning services, deep cleaning, or specialized services such as carpet cleaning or window cleaning, Re'Store Services Inc. has you covered. Our team of experienced and well-trained professionals use the latest equipment and techniques to ensure your property is thoroughly cleaned and well-maintained.</p>
+          <p>In addition to our exceptional cleaning services, Re'Store Services Inc. also places a high value on customer satisfaction. We work closely with our clients to understand their unique needs and preferences, ensuring that they receive personalized and effective cleaning solutions. Re'Store Services Inc. is a reliable and trustworthy cleaning company that offers exceptional services and unparalleled customer satisfaction.</p>
+          <img src={ABT} alt="Re'Store Team" style={{width:'100%',maxWidth:460,margin:'36px auto',display:'block',boxShadow:'0 4px 24px rgba(0,0,0,.1)'}}/>
+          <div style={{textAlign:'center'}}>
+            <p style={{fontSize:'12px',textTransform:'uppercase',letterSpacing:'1.5px',color:'var(--gr)',fontWeight:700,marginBottom:8}}>Call Us for a free estimate</p>
+            <p style={{fontSize:'2.4rem',fontFamily:'Cormorant Garamond,serif',color:'var(--red)',fontWeight:600}}>403-383-3707</p>
+          </div>
+        </div>}
+
+        {/* VISION */}
+        {page===P.vision&&<div className="tp">
+          <h1>Our Vision</h1><div className="pline"/>
+          <div style={{background:'var(--rlt)',borderLeft:'4px solid var(--red)',padding:'28px 32px'}}>
+            <p style={{fontSize:'1.05rem',lineHeight:1.85,fontStyle:'italic',color:'var(--dk)',marginBottom:0}}>"Our vision is to become the leading provider of high-quality cleaning services, committed to creating clean and healthy environments for our clients. We strive to exceed expectations by delivering exceptional customer service and utilizing the latest technology and environmentally-friendly practices to ensure a safe and sustainable future for generations to come."</p>
+          </div>
+        </div>}
+
+        {/* MISSION */}
+        {page===P.mission&&<div className="tp">
+          <h1>Our Mission Statement</h1><div className="pline"/>
+          <p>At Re'Store Services, our mission is to provide our clients with a spotless and hygienic environment that promotes health and wellbeing. We strive to exceed their expectations by delivering consistent and reliable cleaning services that enhance the appearance and functionality of their spaces.</p>
+          <p>We are committed to using eco-friendly products and practices that minimize our environmental footprint and promote sustainability. Our team of trained and dedicated professionals is focused on building strong relationships with our clients, based on trust, respect, and open communication.</p>
+          <p>We are passionate about making a positive impact in our clients' lives, and we are driven by our commitment to excellence, integrity, and innovation.</p>
+        </div>}
+
+        {/* VALUES */}
+        {page===P.values&&<div className="tp" style={{maxWidth:960}}>
+          <h1>Our Core Values</h1><div className="pline"/>
+          <div className="vg">
+            {[{t:"Safety",d:"We prioritize the safety and well-being of our clients and employees, following all necessary protocols."},{t:"Integrity",d:"We are honest and ethical in all our interactions with our clients and employees."},{t:"Quality",d:"We strive for excellence in everything we do, delivering high-quality cleaning services to exceed expectations."},{t:"Reliability",d:"We are dependable and always keep our promises, ensuring homes and offices are clean and organized."},{t:"Customer Service",d:"We prioritize our clients' needs and strive to provide exceptional service, listening to their feedback."},{t:"Teamwork",d:"We believe in working together, fostering a positive and collaborative work environment."},{t:"Respect",d:"We respect our clients, employees, and the environment, operating in a responsible manner."},{t:"Innovation",d:"We embrace new technologies and methodologies, constantly looking for ways to improve."},{t:"Community",d:"We are committed to giving back to our community, supporting local initiatives and charitable causes."}].map((v,i)=>(
+              <div className="vc" key={i}><div className="vt">✦ {v.t}</div><div className="vx">{v.d}</div></div>
+            ))}
+          </div>
+        </div>}
+
+        {/* SERVICES */}
+        {page===P.services&&<div className="sec">
+          <div style={{textAlign:'center',marginBottom:48}}>
+            <div className="gbar" style={{margin:'0 auto 16px'}}/>
+            <h2 className="stitle">Our Services – Book Online</h2>
+            <p className="ssub" style={{margin:'0 auto'}}>Choose your service, pick a date and time, pay securely with Stripe.</p>
+          </div>
+          <div className="cg" style={{marginBottom:52}}>
+            {[{img:RES,title:"Residential Cleaning",items:["Regular / Routine Cleaning","Deep Cleaning","Move-In / Move-Out Cleaning","Post-Construction Cleaning"]},{img:COM,title:"Commercial Cleaning",items:["Office Cleaning","Retail Space Cleaning","Janitorial Services","Post-Event Cleaning"]},{img:SPC,title:"Specialty Cleaning",items:["Carpet & Rug Cleaning","Upholstery Cleaning","Hard Floor Cleaning","Window Cleaning"]}].map((s,i)=>(
+              <div className="card" key={i} style={{cursor:'default'}}>
+                <img className="cimg" src={s.img} alt={s.title}/>
+                <div className="cbody"><h3 className="ctitle">{s.title}</h3><ul style={{paddingLeft:18}}>{s.items.map((it,j)=><li key={j} style={{fontSize:14,color:'var(--gr)',marginBottom:6}}>{it}</li>)}</ul></div>
+              </div>
+            ))}
+          </div>
+          <div className="fbox">
+            <h2>Book an Appointment</h2>
+            <p className="fsub">Select your date & time, fill in your details. Secure payment via Stripe.</p>
+            {bSent?<div className="ok">✅ Booking confirmed! Check your email for details. We'll see you soon!</div>:<>
+              <div className="calw">
+                <h3>📅 Select a Date</h3>
+                <MiniCal sel={selDate} onSel={d=>{setSelDate(d);setSelTime(null)}}/>
+                {selDate&&<>
+                  <p style={{marginTop:14,marginBottom:8,fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:.5,color:'var(--gr)'}}>Available Times – {selDate.toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'})}</p>
+                  <div className="slots">
+                    {TIMES.map(t=>(
+                      <button key={t} className={`slot${selTime===t?' on':''}${BUSY.includes(t)?' bz':''}`} onClick={()=>!BUSY.includes(t)&&setSelTime(t)}>
+                        {BUSY.includes(t)?`${t} ✗`:t}
+                      </button>
+                    ))}
+                  </div>
+                </>}
+              </div>
+              <div className="fr">
+                <div className="fg"><label>Full Name *</label><input placeholder="Jane Smith" value={bf.name} onChange={e=>setBf(f=>({...f,name:e.target.value}))}/></div>
+                <div className="fg"><label>Email *</label><input type="email" placeholder="jane@email.com" value={bf.email} onChange={e=>setBf(f=>({...f,email:e.target.value}))}/></div>
+              </div>
+              <div className="fr">
+                <div className="fg"><label>Phone</label><input type="tel" placeholder="403-000-0000" value={bf.phone} onChange={e=>setBf(f=>({...f,phone:e.target.value}))}/></div>
+                <div className="fg"><label>Service Type</label>
+                  <select value={bf.service} onChange={e=>setBf(f=>({...f,service:e.target.value}))}>
+                    <option value="">Select a service...</option>
+                    <option>Residential – Regular Cleaning</option>
+                    <option>Residential – Deep Cleaning</option>
+                    <option>Move-In / Move-Out Cleaning</option>
+                    <option>Commercial Cleaning</option>
+                    <option>Carpet & Rug Cleaning</option>
+                    <option>Upholstery Cleaning</option>
+                    <option>Hard Floor Cleaning</option>
+                    <option>Window Cleaning</option>
+                  </select>
+                </div>
+              </div>
+              <div className="fg"><label>Address</label><input placeholder="123 Main St SW, Calgary, AB" value={bf.address} onChange={e=>setBf(f=>({...f,address:e.target.value}))}/></div>
+              <div className="fg"><label>Additional Notes</label><textarea placeholder="Special requests, access instructions, pets…" value={bf.notes} onChange={e=>setBf(f=>({...f,notes:e.target.value}))}/></div>
+              {selDate&&selTime&&<div style={{background:'var(--rlt)',border:'1px solid rgba(204,31,31,.3)',padding:'12px 16px',marginBottom:14,fontSize:14}}><strong>📅 Selected:</strong> {selDate.toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'})} at {selTime}</div>}
+              <button className="rbtn" onClick={submitBook} disabled={bLoading}>{bLoading?'Processing…':'💳 Confirm & Pay with Stripe'}</button>
+              <div className="sbadge">🔒 Secured by <strong>Stripe</strong> — your payment info is never stored on our servers</div>
+            </>}
+          </div>
+        </div>}
+
+        {/* QUOTE */}
+        {page===P.quote&&<div className="sec"><QuoteCalc onBook={()=>nav(P.services)}/></div>}
+
+        {/* REVIEWS */}
+        {page===P.reviews&&<div className="sec">
+          <div style={{textAlign:'center',marginBottom:48}}>
+            <div className="gbar" style={{margin:'0 auto 16px'}}/>
+            <h2 className="stitle">Customer Reviews</h2>
+            <div style={{fontSize:30,color:'#f59e0b',margin:'8px 0 4px'}}>★★★★★</div>
+            <p style={{fontSize:20,fontWeight:700}}>4.8 / 5 &nbsp;·&nbsp; {REVIEWS.length} reviews</p>
+            <p style={{color:'var(--gr)',margin:'8px 0 20px'}}>Trusted by hundreds of Calgary families and businesses</p>
+            <a className="rmbtn" href="https://www.google.com/search?q=restore+services+calgary+reviews" target="_blank" rel="noopener noreferrer" style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8}}>⭐ Leave a Google Review</a>
+          </div>
+          <div className="rg">
+            {REVIEWS.map((r,i)=>(
+              <div key={i} className="rc">
+                <div className="rs">{'★'.repeat(r.r)}{'☆'.repeat(5-r.r)}</div>
+                <p className="rt">"{r.t}"</p>
+                <div className="ra">{r.a}</div><div className="rd">{r.d}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:'center',marginTop:44}}>
+            <button className="rmbtn" onClick={()=>nav(P.services)}>Book Your Cleaning Today</button>
+          </div>
+        </div>}
+
+        {/* GALLERY */}
+        {page===P.gallery&&<div className="sec">
+          <div style={{textAlign:'center',marginBottom:48}}>
+            <div className="gbar" style={{margin:'0 auto 16px'}}/>
+            <h2 className="stitle">Gallery</h2>
+            <p className="ssub" style={{margin:'0 auto'}}>A look at the spaces we've transformed for our clients across Calgary and area.</p>
+          </div>
+          <div className="gg">
+            {[RES,COM,SPC,RES,COM,SPC].map((src,i)=><div className="gi" key={i}><img src={src} alt={`Gallery ${i+1}`}/></div>)}
+          </div>
+        </div>}
+
+        {/* GIFT CARD */}
+        {page===P.giftcard&&<div className="sec" style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'60vh'}}>
+          <div className="gcb">
+            <div style={{fontSize:52,marginBottom:18}}>🎁</div>
+            <h2 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'2rem',color:'var(--red)',marginBottom:8}}>Gift a Clean Home</h2>
+            <p style={{color:'var(--gr)',fontSize:14.5,marginBottom:24}}>Give the gift of a spotless space. Delivered instantly by email after purchase.</p>
+            {gSent?<div className="ok">🎉 Gift card purchased! The recipient will receive their unique code by email shortly.</div>:<>
+              <input className="gin" placeholder="Recipient Name" value={gf.rName} onChange={e=>setGf(f=>({...f,rName:e.target.value}))}/>
+              <input className="gin" type="email" placeholder="Recipient Email *" value={gf.rEmail} onChange={e=>setGf(f=>({...f,rEmail:e.target.value}))}/>
+              <input className="gin" placeholder="Your Name (sender)" value={gf.sName} onChange={e=>setGf(f=>({...f,sName:e.target.value}))}/>
+              <input className="gin" placeholder="Personal message (optional)" value={gf.msg} onChange={e=>setGf(f=>({...f,msg:e.target.value}))}/>
+              <select className="gin" value={gf.amount} onChange={e=>setGf(f=>({...f,amount:e.target.value}))}>
+                <option value="">Select Amount *</option>
+                <option value="50">$50 CAD</option>
+                <option value="100">$100 CAD</option>
+                <option value="150">$150 CAD</option>
+                <option value="200">$200 CAD</option>
+                <option value="250">$250 CAD – Full Cleaning Package</option>
+              </select>
+              <button className="gbtn" onClick={()=>{if(!gf.rEmail||!gf.amount){alert('Please fill in recipient email and select an amount.');return;}setGSent(true);}}>💳 Purchase with Stripe</button>
+              <div className="sbadge">🔒 Secured by <strong>Stripe</strong></div>
+            </>}
+          </div>
+        </div>}
+
+        {/* ADMIN */}
+        {page===P.admin&&<Admin/>}
+
+        {/* CUSTOMER DASHBOARD */}
+        {page===P.dashboard&&<div className="dw">
+          <h1>My Bookings</h1><div className="pline"/>
+          {!dashAuth?<>
+            <p style={{color:'var(--gr)',marginBottom:20}}>Enter your email address to view your upcoming bookings.</p>
+            <div className="fg"><label>Email Address</label><input type="email" placeholder="you@email.com" value={dashEmail} onChange={e=>setDashEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&dashEmail&&setDashAuth(true)}/></div>
+            <button className="rbtn" onClick={()=>dashEmail?setDashAuth(true):null}>View My Bookings</button>
+          </>:<>
+            <p style={{color:'var(--gr)',marginBottom:20}}>Logged in as <strong>{dashEmail}</strong></p>
+            {[{id:'1',service:'Residential – Regular Cleaning',date:'2024-12-28',time:'10:00 AM',address:'123 Main St SW, Calgary',status:'confirmed'},{id:'2',service:'Carpet Cleaning',date:'2025-01-15',time:'2:00 PM',address:'123 Main St SW, Calgary',status:'pending'}].map(b=>(
+              <div key={b.id} className="dc">
+                <div><h4>{b.service}</h4><p>{b.date} at {b.time}</p><p>{b.address}</p></div>
+                <div style={{textAlign:'right'}}>
+                  <span className={`badge ${b.status==='confirmed'?'bc':'bp'}`}>{b.status}</span>
+                  <div style={{marginTop:10}}>
+                    <button className="aa">Reschedule</button>
+                    <button className="aa del">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>}
+        </div>}
+
+        {/* SEO: CARPET */}
+        {page===P.carpet&&<div className="pe">
+          <div className="sh">
+            <div style={{maxWidth:1100,margin:'0 auto'}}>
+              <p className="sbc">Calgary Cleaning Services › Carpet Cleaning</p>
+              <h1>Carpet Cleaning Calgary – Professional & Eco-Friendly</h1>
+              <p>Calgary's trusted carpet cleaning experts. Hot water extraction, eco-safe products, serving all Calgary neighbourhoods. Same-week booking available.</p>
+              <button className="hbtn" style={{marginTop:24}} onClick={()=>nav(P.services)}>Get a Free Quote</button>
+            </div>
+          </div>
+          <div className="sec">
+            <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:48,alignItems:'start'}}>
+              <div>
+                <div className="gbar" style={{marginBottom:16}}/>
+                <h2 className="stitle">Calgary's Best Carpet Cleaning Service</h2>
+                <p style={{color:'var(--gm)',lineHeight:1.8,marginBottom:14}}>Re'Store Services provides professional carpet cleaning across Calgary, Airdrie, Cochrane, Chestermere, and Okotoks. Our certified technicians use hot water extraction to remove deep-seated dirt, allergens, pet dander, and stains.</p>
+                <p style={{color:'var(--gm)',lineHeight:1.8,marginBottom:14}}>We're locally owned and operated in Calgary. We understand Alberta's unique climate challenges — from muddy spring boots to winter road salt — and tailor our methods accordingly.</p>
+                <h3 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.4rem',color:'var(--red)',margin:'24px 0 10px'}}>Why Choose Re'Store?</h3>
+                {['Hot water extraction – #1 carpet manufacturer recommended method','100% eco-friendly, pet-safe, child-safe cleaning products','Fully insured and certified technicians','Same-week appointments available','Free spot treatment included with every clean','Service guarantee – we re-clean if you\'re not satisfied'].map((p,i)=>(
+                  <p key={i} style={{color:'var(--gm)',lineHeight:1.7,marginBottom:8,fontSize:14}}>✓ {p}</p>
+                ))}
+              </div>
+              <div>
+                <div style={{background:'var(--rlt)',border:'1px solid rgba(204,31,31,.3)',padding:24}}>
+                  <h3 style={{fontFamily:'Cormorant Garamond,serif',color:'var(--red)',fontSize:'1.3rem',marginBottom:14}}>Carpet Cleaning Prices</h3>
+                  {[['1 Room','From $60'],['2–3 Rooms','From $120'],['Whole Home','$0.18/sq ft'],['Stairs','From $45'],['Area Rug','From $35'],['Pet Odour','+$25/room']].map(([s,pr])=>(
+                    <div key={s} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid rgba(204,31,31,.15)',fontSize:14}}>
+                      <span>{s}</span><strong style={{color:'var(--red)'}}>{pr}</strong>
+                    </div>
+                  ))}
+                  <button className="rbtn" style={{marginTop:18}} onClick={()=>nav(P.services)}>Book Now</button>
+                </div>
+              </div>
+            </div>
+            <div style={{marginTop:48}}>
+              <h2 className="stitle">Frequently Asked Questions</h2>
+              <div className="gbar" style={{marginBottom:24}}/>
+              {FAQS.map((f,i)=>(
+                <div key={i} className="fqi">
+                  <button className="fqq" onClick={()=>setFaqOpen(faqOpen===i?null:i)}>
+                    <span>{f.q}</span><span style={{color:'var(--red)',fontSize:18,fontWeight:400}}>{faqOpen===i?'−':'+'}</span>
+                  </button>
+                  {faqOpen===i&&<div className="fqa">{f.a}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>}
+
+        {/* SEO: RESIDENTIAL */}
+        {page===P.residential&&<div className="pe">
+          <div className="sh">
+            <div style={{maxWidth:1100,margin:'0 auto'}}>
+              <p className="sbc">Calgary Cleaning Services › House Cleaning</p>
+              <h1>House Cleaning Calgary – Trusted Residential Cleaners</h1>
+              <p>Calgary's top-rated residential cleaning service. Regular, deep clean, move-in/out. Eco-friendly, insured, and background-checked cleaners.</p>
+              <button className="hbtn" style={{marginTop:24}} onClick={()=>nav(P.services)}>Book House Cleaning</button>
+            </div>
+          </div>
+          <div className="sec">
+            <h2 className="stitle">Professional House Cleaning in Calgary</h2>
+            <div className="gbar" style={{marginBottom:24}}/>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:36}}>
+              {[{s:'Regular Cleaning',p:'From $80',d:'Weekly, bi-weekly or monthly. Keep your home consistently clean and fresh.'},{s:'Deep Cleaning',p:'From $195',d:'Thorough top-to-bottom clean. Perfect for seasonal or first-time cleans.'},{s:'Move-In / Move-Out',p:'From $220',d:"Full clean to get your deposit back or start fresh in your new home."},{s:'Post-Construction',p:'Custom quote',d:'Dust, debris, and residue removal after renovations or builds.'}].map((s,i)=>(
+                <div key={i} style={{background:'#fff',border:'1px solid var(--bd)',padding:'22px 26px',boxShadow:'var(--sh)'}}>
+                  <h3 style={{fontFamily:'Cormorant Garamond,serif',fontSize:'1.3rem',color:'var(--red)',marginBottom:6}}>{s.s}</h3>
+                  <p style={{fontSize:'1.05rem',fontWeight:700,color:'var(--gld)',marginBottom:8}}>{s.p}</p>
+                  <p style={{fontSize:14,color:'var(--gm)'}}>{s.d}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{textAlign:'center'}}><button className="rmbtn" onClick={()=>nav(P.services)}>Book Your House Cleaning</button></div>
+          </div>
+        </div>}
+
+        {/* SEO: COMMERCIAL */}
+        {page===P.commercial&&<div className="pe">
+          <div className="sh">
+            <div style={{maxWidth:1100,margin:'0 auto'}}>
+              <p className="sbc">Calgary Cleaning Services › Commercial Cleaning</p>
+              <h1>Commercial Cleaning Calgary – Office &amp; Business Cleaning</h1>
+              <p>Professional commercial cleaning for offices, retail, restaurants, and warehouses in Calgary. Fully insured, flexible scheduling, competitive rates.</p>
+              <button className="hbtn" style={{marginTop:24}} onClick={()=>nav(P.services)}>Get a Commercial Quote</button>
+            </div>
+          </div>
+          <div className="sec">
+            <h2 className="stitle">Calgary Commercial Cleaning Services</h2>
+            <div className="gbar" style={{marginBottom:20}}/>
+            <p style={{color:'var(--gm)',lineHeight:1.8,marginBottom:16,maxWidth:720}}>Re'Store Services provides flexible commercial cleaning contracts for businesses of all sizes in Calgary. From daily janitorial services to weekly office cleaning and post-event cleanups, our professional team ensures your workplace stays spotless.</p>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,maxWidth:600,marginBottom:36}}>
+              {['Office & corporate buildings','Retail stores & shopping centres','Restaurants & commercial kitchens','Medical & dental offices','Gyms & fitness centres','Warehouses & industrial spaces'].map((s,i)=>(
+                <p key={i} style={{fontSize:14,color:'var(--gm)'}}>✓ {s}</p>
+              ))}
+            </div>
+            <div style={{textAlign:'center'}}><button className="rmbtn" onClick={()=>nav(P.services)}>Get a Custom Commercial Quote</button></div>
+          </div>
+        </div>}
+
+      </main>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="fg2">
+          <div className="fc">
+            <h4>Re'Store Services</h4>
+            <p>Professional cleaning services for homes and businesses across Calgary and surrounding communities.</p>
+            <div style={{marginTop:10,fontSize:13}}>
+              <p>📞 <a href="tel:4033833707" style={{color:'inherit'}}>403-383-3707</a></p>
+              <p style={{marginTop:4}}>🌐 <a href="https://restoreservices.ca" target="_blank" rel="noopener noreferrer" style={{color:'inherit'}}>restoreservices.ca</a></p>
+            </div>
+            <div className="soci">
+              <a className="soc" href="https://facebook.com" target="_blank" rel="noopener noreferrer">f</a>
+              <a className="soc" href="https://twitter.com" target="_blank" rel="noopener noreferrer">𝕏</a>
+            </div>
+          </div>
+          <div className="fc">
+            <h4>Areas We Cover</h4>
+            <ul>{["Calgary","Airdrie","Cochrane","Chestermere","Okotoks"].map(a=><li key={a}>📍 {a}</li>)}</ul>
+            <div style={{marginTop:18}}>
+              <h4 style={{borderBottom:'none',padding:0,marginBottom:10,marginTop:0}}>Quick Links</h4>
+              <ul>
+                {[['Carpet Cleaning Calgary',P.carpet],['House Cleaning Calgary',P.residential],['Commercial Cleaning Calgary',P.commercial],['Quote Calculator',P.quote],['Customer Reviews',P.reviews],['My Bookings',P.dashboard]].map(([l,pg])=>(
+                  <li key={pg}><span className="ql" onClick={()=>nav(pg)}>{l}</span></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="fc">
+            <h4>Contact Us</h4>
+            {cSent?<p style={{color:'#fff',fontWeight:700}}>✅ Thanks! We'll be in touch soon.</p>:
+              <div className="cff">
+                <input placeholder="Your Name" value={cf.name} onChange={e=>setCf(f=>({...f,name:e.target.value}))}/>
+                <input type="email" placeholder="Your Email" value={cf.email} onChange={e=>setCf(f=>({...f,email:e.target.value}))}/>
+                <textarea placeholder="Message…" value={cf.msg} onChange={e=>setCf(f=>({...f,msg:e.target.value}))}/>
+                <button onClick={()=>setCSent(true)}>Submit</button>
+              </div>
+            }
+          </div>
+        </div>
+        <div className="fbot">© 2023 by Re'Store Services Inc. &nbsp;|&nbsp; 403-383-3707 &nbsp;|&nbsp; Calgary, AB, Canada</div>
+      </footer>
+
+      <Chatbot onNav={nav}/>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
