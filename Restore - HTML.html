@@ -30,6 +30,16 @@ const REVIEWS = [
   {a:"Amanda R.",r:5,t:"Used the move-out cleaning service. Got my full damage deposit back! Worth every penny.",d:"2 months ago"},
   {a:"Carlos B.",r:5,t:"Fast booking, great communication, excellent results. The quote calculator made it so easy to plan.",d:"3 months ago"},
 ];
+const LS_PENDING_REV='restore_pending_reviews';
+const LS_PUBLISHED_EXTRA='restore_extra_published';
+function readPending(){try{return JSON.parse(localStorage.getItem(LS_PENDING_REV)||'[]');}catch(e){return[];}}
+function writePending(arr){localStorage.setItem(LS_PENDING_REV,JSON.stringify(arr));}
+function readPublishedExtra(){try{return JSON.parse(localStorage.getItem(LS_PUBLISHED_EXTRA)||'[]');}catch(e){return[];}}
+function writePublishedExtra(arr){localStorage.setItem(LS_PUBLISHED_EXTRA,JSON.stringify(arr));}
+const LS_ADMIN_ACC='restore_admin_accounts';
+function readAdminAccounts(){try{return JSON.parse(localStorage.getItem(LS_ADMIN_ACC)||'[]');}catch(e){return[];}}
+function writeAdminAccounts(a){localStorage.setItem(LS_ADMIN_ACC,JSON.stringify(a));}
+function adminHashMatch(){const r=(window.location.hash||'').replace(/^#/,'').toLowerCase().replace(/^\//,'');return r==='admin';}
 
 const TIMES = ["8:00 AM","9:00 AM","10:00 AM","11:00 AM","1:00 PM","2:00 PM","3:00 PM","4:00 PM"];
 const BUSY  = ["9:00 AM","2:00 PM"];
@@ -45,12 +55,12 @@ body{font-family:'Open Sans',sans-serif;color:var(--dk);background:var(--wh);fon
 .htop{background:var(--red);color:#fde8e8;text-align:right;padding:7px 48px;font-size:12.5px;font-weight:600}
 .htop a{color:#fde8e8;text-decoration:none}
 .htop a:hover{color:#fff}
-.hmain{display:flex;align-items:center;justify-content:space-between;padding:0 48px;max-width:1280px;margin:0 auto;height:72px}
+.hmain{display:flex;align-items:center;justify-content:space-between;padding:0 48px;max-width:1280px;margin:0 auto;height:92px}
 .logo{cursor:pointer;display:flex;align-items:center}
-.logo img{height:56px;width:auto;object-fit:contain}
+.logo img{height:78px;width:auto;object-fit:contain;max-height:86px}
 nav{display:flex;align-items:center}
 .ni{position:relative}
-.nl{display:flex;align-items:center;height:72px;padding:0 13px;font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--dk);cursor:pointer;white-space:nowrap;border:none;background:none;font-family:'Open Sans',sans-serif;position:relative;transition:color .2s}
+.nl{display:flex;align-items:center;height:92px;padding:0 13px;font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--dk);cursor:pointer;white-space:nowrap;border:none;background:none;font-family:'Open Sans',sans-serif;position:relative;transition:color .2s}
 .nl::after{content:'';position:absolute;bottom:0;left:13px;right:13px;height:3px;background:var(--red);transform:scaleX(0);transition:transform .2s}
 .nl:hover,.nl.act{color:var(--red)}
 .nl:hover::after,.nl.act::after{transform:scaleX(1)}
@@ -165,6 +175,15 @@ nav{display:flex;align-items:center}
 .rt{font-size:14px;color:var(--gm);line-height:1.65;margin-bottom:14px;font-style:italic}
 .ra{font-size:13px;font-weight:700}
 .rd{font-size:12px;color:var(--gr);margin-top:2px}
+.rmod{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.rmodbox{background:#fff;max-width:480px;width:100%;padding:32px;border:1px solid var(--bd);box-shadow:var(--shl);max-height:90vh;overflow-y:auto;border-radius:4px}
+.rmodbox h3{font-family:'Cormorant Garamond',serif;font-size:1.55rem;color:var(--red);margin-bottom:8px;font-weight:600}
+.rst{text-align:center;font-size:13px;color:var(--gr);margin-bottom:6px}
+.rstars{display:flex;gap:4px;justify-content:center;margin:12px 0 18px;font-size:32px;line-height:1}
+.rstars button{background:none;border:none;cursor:pointer;padding:0 4px;color:#f59e0b;opacity:.35;transition:opacity .15s,transform .15s;font-size:32px;line-height:1}
+.rstars button.on,.rstars button:hover{opacity:1}
+.rstars button:focus{outline:2px solid var(--red);outline-offset:2px}
+.rhint{font-size:12px;color:var(--gr);text-align:center;margin-top:-8px;margin-bottom:14px;font-style:italic}
 /* GIFT CARD */
 .gcb{max-width:500px;margin:0 auto;text-align:center;background:#fff;border:1px solid var(--bd);padding:52px 44px;box-shadow:var(--sh)}
 .gin{width:100%;padding:11px 15px;margin:6px 0;border:1px solid var(--bd);font-size:14px;font-family:'Open Sans',sans-serif;background:var(--off);outline:none;transition:border-color .2s}
@@ -417,10 +436,14 @@ function QuoteCalc({onBook}) {
 }
 
 /* ── ADMIN ── */
-function Admin() {
+function Admin({ reviewTick, onReviewsChanged, onExit }) {
   const [tab,setTab]=useState('bookings');
   const [authed,setAuthed]=useState(false);
+  const [authMode,setAuthMode]=useState('login');
+  const [user,setUser]=useState('');
   const [pw,setPw]=useState('');
+  const [pw2,setPw2]=useState('');
+  const [pendingReviews,setPendingReviews]=useState([]);
   const [bkgs,setBkgs]=useState([
     {id:'1',name:'Sarah M.',email:'sarah@email.com',service:'Residential – Deep Cleaning',date:'2024-12-20',time:'10:00 AM',address:'123 Main St SW',status:'confirmed'},
     {id:'2',name:'David K.',email:'david@email.com',service:'Carpet Cleaning',date:'2024-12-21',time:'2:00 PM',address:'456 Oak Ave NE',status:'confirmed'},
@@ -428,18 +451,53 @@ function Admin() {
     {id:'4',name:'Mike T.',email:'mike@email.com',service:'Commercial Cleaning',date:'2024-12-23',time:'8:00 AM',address:'101 Business Blvd',status:'confirmed'},
     {id:'5',name:'Amanda R.',email:'amanda@email.com',service:'Move-In / Move-Out',date:'2024-12-26',time:'11:00 AM',address:'55 Elm Way NW',status:'pending'},
   ]);
+  useEffect(()=>{
+    if(!authed)return;
+    setPendingReviews(readPending());
+  },[authed,tab,reviewTick]);
+  const tryLogin=()=>{
+    const u=user.trim(); if(!u||!pw){alert('Enter username and password.');return;}
+    const ac=readAdminAccounts();
+    if(ac.length===0){alert('No admin account yet. Use Sign up to create the first one.');return;}
+    if(ac.some(a=>a.user===u&&a.pass===pw)) setAuthed(true);
+    else alert('Invalid username or password.');
+  };
+  const trySignup=()=>{
+    const u=user.trim(); if(!u||u.length<3){alert('Username must be at least 3 characters.');return;}
+    if(!pw||pw.length<6){alert('Password must be at least 6 characters.');return;}
+    if(pw!==pw2){alert('Passwords do not match.');return;}
+    const ac=readAdminAccounts();
+    if(ac.some(a=>a.user===u)){alert('That username is already registered. Log in instead.');return;}
+    writeAdminAccounts([...ac,{user:u,pass:pw}]);
+    setAuthed(true);
+  };
   if(!authed) return (
-    <div className="adw" style={{maxWidth:400}}>
-      <h1>Admin Login</h1><div className="pline"/>
-      <div className="fg"><label>Password</label><input type="password" placeholder="Enter admin password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(pw==='admin123'?setAuthed(true):alert('Wrong password'))}/></div>
-      <button className="rbtn" onClick={()=>pw==='admin123'?setAuthed(true):alert('Wrong password (hint: admin123)')}>Login</button>
-      <p style={{fontSize:12,color:'var(--gr)',marginTop:10}}>Demo password: <strong>admin123</strong></p>
+    <div className="adw" style={{maxWidth:420}}>
+      <h1>{authMode==='login'?'Admin login':'Create admin account'}</h1><div className="pline"/>
+      <p style={{fontSize:12,color:'var(--gr)',marginBottom:18}}>Staff only. Open this page with the admin link (bookmark <code style={{background:'var(--gl)',padding:'2px 6px',borderRadius:2}}>#/admin</code> on your site URL).</p>
+      <div className="atabs" style={{marginBottom:20}}>
+        <button type="button" className={`atab${authMode==='login'?' on':''}`} onClick={()=>setAuthMode('login')}>Log in</button>
+        <button type="button" className={`atab${authMode==='signup'?' on':''}`} onClick={()=>setAuthMode('signup')}>Sign up</button>
+      </div>
+      <div className="fg"><label>Username</label><input autoComplete="username" placeholder="Admin username" value={user} onChange={e=>setUser(e.target.value)}/></div>
+      <div className="fg"><label>Password</label><input type="password" autoComplete={authMode==='signup'?'new-password':'current-password'} placeholder="Password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(authMode==='login'?tryLogin:trySignup)()}/></div>
+      {authMode==='signup'&&<div className="fg"><label>Confirm password</label><input type="password" autoComplete="new-password" placeholder="Confirm password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&trySignup()}/></div>}
+      <button className="rbtn" onClick={authMode==='login'?tryLogin:trySignup}>{authMode==='login'?'Log in':'Create account & log in'}</button>
+      <button type="button" className="wbtn" style={{marginTop:12,width:'100%',background:'var(--wh)',color:'var(--dk)',border:'1.5px solid var(--bd)'}} onClick={onExit}>← Back to website</button>
+      <p style={{fontSize:11,color:'var(--gr)',marginTop:14}}>Demo: passwords are stored in this browser only (not for production use).</p>
     </div>
   );
   const conf=bkgs.filter(b=>b.status==='confirmed').length, pend=bkgs.filter(b=>b.status==='pending').length;
   return (
     <div className="adw">
-      <h1>Admin Dashboard</h1><div className="pline"/>
+      <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'space-between',gap:12}}>
+        <h1 style={{marginBottom:0}}>Admin Dashboard</h1>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <button type="button" className="wbtn" style={{marginTop:0}} onClick={()=>{setAuthed(false);setPw('');setPw2('');}}>Log out</button>
+          <button type="button" className="wbtn" style={{marginTop:0}} onClick={onExit}>← Back to site</button>
+        </div>
+      </div>
+      <div className="pline"/>
       <div className="adst">
         <div className="ads"><div className="n">{bkgs.length}</div><div className="l">Total Bookings</div></div>
         <div className="ads"><div className="n">{conf}</div><div className="l">Confirmed</div></div>
@@ -447,7 +505,7 @@ function Admin() {
         <div className="ads"><div className="n">${conf*145}</div><div className="l">Est. Revenue</div></div>
       </div>
       <div className="atabs">
-        {['bookings','calendar','settings'].map(t=><button key={t} className={`atab${tab===t?' on':''}`} onClick={()=>setTab(t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+        {['bookings','reviews','calendar','settings'].map(t=><button key={t} className={`atab${tab===t?' on':''}`} onClick={()=>setTab(t)}>{t==='reviews'?'Review approvals':t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
       </div>
       {tab==='bookings'&&(
         <div style={{overflowX:'auto'}}>
@@ -468,6 +526,44 @@ function Admin() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {tab==='reviews'&&(
+        <div>
+          <p style={{fontSize:14,color:'var(--gm)',marginBottom:18}}>Customer-submitted reviews appear here first. Approve to show on the public Reviews page, or reject to discard.</p>
+          {pendingReviews.length===0?<div className="ok" style={{textAlign:'left'}}>No reviews awaiting approval.</div>:(
+            <div style={{overflowX:'auto'}}>
+              <table className="bt">
+                <thead><tr><th>Submitted</th><th>Customer</th><th>Email</th><th>Rating</th><th>Review</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {pendingReviews.map(p=>(
+                    <tr key={p.id}>
+                      <td style={{fontSize:12,whiteSpace:'nowrap'}}>{p.submittedAt?new Date(p.submittedAt).toLocaleString('en-CA',{dateStyle:'short',timeStyle:'short'}):'—'}</td>
+                      <td><strong>{p.a}</strong></td>
+                      <td style={{fontSize:12}}>{p.email||'—'}</td>
+                      <td><span style={{color:'#f59e0b',fontSize:15}}>{'★'.repeat(p.r)}{'☆'.repeat(5-p.r)}</span></td>
+                      <td style={{maxWidth:280,fontSize:13}}>{p.t}</td>
+                      <td style={{whiteSpace:'nowrap'}}>
+                        <button className="aa" onClick={()=>{
+                          const extra=readPublishedExtra();
+                          const dStr=p.submittedAt?new Date(p.submittedAt).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'}):'Recently';
+                          extra.push({a:p.a,r:p.r,t:p.t,d:dStr});
+                          writePublishedExtra(extra);
+                          writePending(readPending().filter(x=>x.id!==p.id));
+                          setPendingReviews(readPending());
+                          onReviewsChanged&&onReviewsChanged();
+                        }}>Approve</button>
+                        <button className="aa del" onClick={()=>{
+                          writePending(readPending().filter(x=>x.id!==p.id));
+                          setPendingReviews(readPending());
+                        }}>Reject</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
       {tab==='calendar'&&(
@@ -501,7 +597,9 @@ function Admin() {
 
 /* ── MAIN APP ── */
 function App() {
-  const [page,setPage]=useState(P.home);
+  const [page,setPage]=useState(()=>adminHashMatch()?P.admin:P.home);
+  const [reviewTick,setReviewTick]=useState(0);
+  const publishedReviews=React.useMemo(()=>[...REVIEWS,...readPublishedExtra()],[reviewTick,page]);
   const [mob,setMob]=useState(false);
   const [cSent,setCSent]=useState(false);
   const [bSent,setBSent]=useState(false);
@@ -515,8 +613,24 @@ function App() {
   const [faqOpen,setFaqOpen]=useState(null);
   const [dashAuth,setDashAuth]=useState(false);
   const [dashEmail,setDashEmail]=useState('');
+  const [revModal,setRevModal]=useState(false);
+  const [revStars,setRevStars]=useState(0);
+  const [revForm,setRevForm]=useState({name:'',email:'',text:''});
+  const [revSent,setRevSent]=useState(false);
 
-  const nav=(p)=>{ setPage(p); setMob(false); window.scrollTo(0,0); };
+  useEffect(()=>{
+    const onHash=()=>{
+      if(adminHashMatch()){setPage(P.admin);setMob(false);window.scrollTo(0,0);}
+    };
+    window.addEventListener('hashchange',onHash);
+    return ()=>window.removeEventListener('hashchange',onHash);
+  },[]);
+  const nav=(p)=>{
+    setPage(p);setMob(false);window.scrollTo(0,0);
+    if(p===P.admin) window.location.hash='/admin';
+    else if(window.location.hash) history.replaceState(null,'',window.location.pathname+window.location.search);
+  };
+  const exitAdmin=()=>{nav(P.home);};
   const aboutP=[P.about,P.vision,P.mission,P.values];
   const moreP=[P.quote,P.reviews,P.dashboard,P.carpet,P.residential,P.commercial];
 
@@ -568,7 +682,6 @@ function App() {
             </div>
             <div className="ni"><button className={`nl${page===P.gallery?' act':''}`} onClick={()=>nav(P.gallery)}>Gallery</button></div>
             <div className="ni"><button className={`nl${page===P.giftcard?' act':''}`} onClick={()=>nav(P.giftcard)}>Gift Card</button></div>
-            <button className="abtn" onClick={()=>nav(P.admin)}>Admin</button>
           </nav>
           <button className="ham" onClick={()=>setMob(o=>!o)}><span/><span/><span/></button>
         </div>
@@ -585,7 +698,6 @@ function App() {
           <button className="mnl" onClick={()=>nav(P.gallery)}>Gallery</button>
           <button className="mnl" onClick={()=>nav(P.giftcard)}>Gift Card</button>
           <button className="mnl" onClick={()=>nav(P.dashboard)}>My Bookings</button>
-          <button className="mnl" onClick={()=>nav(P.admin)}>Admin</button>
         </div>
       </header>
 
@@ -735,16 +847,51 @@ function App() {
 
         {/* REVIEWS */}
         {page===P.reviews&&<div className="sec">
+          {revModal&&(
+            <div className="rmod" onClick={e=>e.target===e.currentTarget&&setRevModal(false)}>
+              <div className="rmodbox pe" onClick={e=>e.stopPropagation()}>
+                {revSent?<>
+                  <h3>Thank you!</h3>
+                  <p style={{color:'var(--gm)',marginBottom:20}}>Your review was submitted. Our team will review it shortly. Once approved, it will appear on this page.</p>
+                  <button className="rbtn" onClick={()=>{setRevModal(false);setRevSent(false);setRevStars(0);setRevForm({name:'',email:'',text:''});}}>Close</button>
+                </>:<>
+                  <h3>Write a review</h3>
+                  <p className="rst">Rate your experience and share a few words. Reviews are moderated before publication.</p>
+                  <p className="rst" style={{fontWeight:700}}>Your star rating</p>
+                  <div className="rstars" role="group" aria-label="Star rating">
+                    {[1,2,3,4,5].map(n=><button key={n} type="button" className={n<=revStars?'on':''} aria-label={n+' stars'} onClick={()=>setRevStars(n)}>{n<=revStars?'★':'☆'}</button>)}
+                  </div>
+                  <p className="rhint">{revStars?`${revStars} out of 5 stars`:'Click stars to rate'}</p>
+                  <div className="fg"><label>Your name</label><input placeholder="e.g. Alex P." value={revForm.name} onChange={e=>setRevForm(f=>({...f,name:e.target.value}))}/></div>
+                  <div className="fg"><label>Email (optional)</label><input type="email" placeholder="For admin contact only" value={revForm.email} onChange={e=>setRevForm(f=>({...f,email:e.target.value}))}/></div>
+                  <div className="fg"><label>Your review</label><textarea placeholder="Tell others about your experience…" value={revForm.text} onChange={e=>setRevForm(f=>({...f,text:e.target.value}))} style={{minHeight:110}}/></div>
+                  <button className="rbtn" onClick={()=>{
+                    if(!revStars){alert('Please select a star rating.');return;}
+                    if(!revForm.name.trim()||!revForm.text.trim()){alert('Please enter your name and review text.');return;}
+                    const pend=readPending();
+                    pend.push({id:String(Date.now()),a:revForm.name.trim(),r:revStars,t:revForm.text.trim(),email:revForm.email.trim()||'',submittedAt:new Date().toISOString()});
+                    writePending(pend);
+                    setRevSent(true);
+                    setReviewTick(t=>t+1);
+                  }}>Submit for review</button>
+                  <button type="button" style={{width:'100%',marginTop:10,padding:10,background:'none',border:'1px solid var(--bd)',cursor:'pointer',fontFamily:'Open Sans,sans-serif',fontSize:13}} onClick={()=>{setRevModal(false);setRevStars(0);setRevForm({name:'',email:'',text:''});}}>Cancel</button>
+                </>}
+              </div>
+            </div>
+          )}
           <div style={{textAlign:'center',marginBottom:48}}>
             <div className="gbar" style={{margin:'0 auto 16px'}}/>
             <h2 className="stitle">Customer Reviews</h2>
             <div style={{fontSize:30,color:'#f59e0b',margin:'8px 0 4px'}}>★★★★★</div>
-            <p style={{fontSize:20,fontWeight:700}}>4.8 / 5 &nbsp;·&nbsp; {REVIEWS.length} reviews</p>
+            <p style={{fontSize:20,fontWeight:700}}>4.8 / 5 &nbsp;·&nbsp; {publishedReviews.length} reviews</p>
             <p style={{color:'var(--gr)',margin:'8px 0 20px'}}>Trusted by hundreds of Calgary families and businesses</p>
-            <a className="rmbtn" href="https://www.google.com/search?q=restore+services+calgary+reviews" target="_blank" rel="noopener noreferrer" style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8}}>⭐ Leave a Google Review</a>
+            <div style={{display:'flex',flexWrap:'wrap',gap:12,justifyContent:'center',alignItems:'center'}}>
+              <button type="button" className="rmbtn" onClick={()=>{setRevModal(true);setRevSent(false);setRevStars(0);setRevForm({name:'',email:'',text:''});}}>⭐ Write a review</button>
+              <a className="rmbtn" href="https://www.google.com/search?q=restore+services+calgary+reviews" target="_blank" rel="noopener noreferrer" style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8}}>Leave a Google Review</a>
+            </div>
           </div>
           <div className="rg">
-            {REVIEWS.map((r,i)=>(
+            {publishedReviews.map((r,i)=>(
               <div key={i} className="rc">
                 <div className="rs">{'★'.repeat(r.r)}{'☆'.repeat(5-r.r)}</div>
                 <p className="rt">"{r.t}"</p>
@@ -795,7 +942,7 @@ function App() {
         </div>}
 
         {/* ADMIN */}
-        {page===P.admin&&<Admin/>}
+        {page===P.admin&&<Admin reviewTick={reviewTick} onReviewsChanged={()=>setReviewTick(t=>t+1)} onExit={exitAdmin}/>}
 
         {/* CUSTOMER DASHBOARD */}
         {page===P.dashboard&&<div className="dw">
